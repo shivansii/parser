@@ -18,6 +18,7 @@ local function trim(s)
       local lines = {}
       local table_header = false
       local in_table = false
+      local code_block_start = false
       for line in markdown_text:gmatch("[^\n]+") do
           if line:match("^#") then
               table.insert(lines, parse_header(line))
@@ -50,11 +51,13 @@ local function trim(s)
                     end
                     table.insert(lines, "</tr>")
                 end
+            
             else
                 if in_table then
                     in_table = false
                     table.insert(lines, "</table>")
                 end
+                
         
               -- Check for bold
               line = line:gsub("%*%*(.-)%*%*", "<strong>%1</strong>")
@@ -71,8 +74,16 @@ local function trim(s)
               -- Check for code
               --line = line:gsub("%`(.-)%`", "<code>%1</code>")
               -- Check for code blocks
-              line = line:gsub("`([^`]+)`", "<code>%1</code>")              
-
+              line = line:gsub("`([^`]+)`", "<code>%1</code>")   
+              if line:match("^```") then
+                  if code_block_start then
+                      code_block_start = false
+                      table.insert(lines, "</code></pre>")
+                  else
+                      code_block_start = true
+                      table.insert(lines, "<pre><code>")
+                  end           
+                end
               table.insert(lines, "<p>" .. trim(line) .. "</p>")
           end
       end
