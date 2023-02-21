@@ -41,6 +41,11 @@ This is some basic, sample markdown.
 
 And **bold**, *italics*, and even *italics and later **bold***. Even ~~strikethrough~~. [A link](https://markdowntohtml.com) to somewhere.
 
+| Syntax    | Description | Test Text   |
+|-----------|-------------|-------------|
+| Header    | Title       | Here's this |
+| Paragraph | Text        | And more    |
+
 And code highlighting:
 
 ```js
