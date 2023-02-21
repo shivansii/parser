@@ -1,9 +1,9 @@
--- Define a function to trim leading and trailing white space characters from a string
+-- trim leading and trailing white space from s
 local function trim(s)
     return s:match'^%s*(.*%S)' or ''
   end
   
-  -- Define a function to convert a Markdown header to HTML
+
   local function parse_header(line)
       local level = 0
       while line:sub(1, 1) == "#" do
@@ -13,39 +13,47 @@ local function trim(s)
       return "<h" .. level .. ">" .. trim(line) .. "</h" .. level .. ">"
   end
   
-  -- Define a function to convert Markdown text to HTML
+  -- convert Markdown text to HTML
   local function parse_markdown(markdown_text)
       local lines = {}
+      local table_header = false
       local in_table = false
       for line in markdown_text:gmatch("[^\n]+") do
           if line:match("^#") then
               table.insert(lines, parse_header(line))
               in_table = false
             elseif line:match("^|") then
-                -- Handle table rows
                 if not in_table then
-                    -- Start of a new table
                     in_table = true
-                    table_lines = {"<table>", "<thead>", "<tr>"}
-                    for column in line:gmatch("|%s*([^\n]+)%s*") do
-                        table.insert(table_lines, "<th>" .. column .. "</th>")
+                    table_header = true
+                    table.insert(lines, "<table>")
+                    table.insert(lines, "<tr>")
+                end
+                -- Split line on "|" character
+                local cols = {}
+                for col in line:gmatch("%s+(.-)%s*|") do
+                    table.insert(cols, trim(col))
+                end
+                if table_header then
+                    -- Add table header
+                    for _, col in ipairs(cols) do
+                        table.insert(lines, "<th>" .. col .. "</th>")
                     end
-                    table.insert(table_lines, "</tr></thead><tbody>")
+                    table.insert(lines, "</tr>")
+                    table_header = false
+
                 else
-                    -- Table continuation
-                    table.insert(table_lines, "<tr>")
-                    for column in line:gmatch("|%s*([^\n]+)%s*") do
-                        table.insert(table_lines, "<td>" .. column .. "</td>")
+                    -- Add table row
+                    table.insert(lines, "<tr>")
+                    for _, col in ipairs(cols) do
+                        table.insert(lines, "<td>" .. col .. "</td>")
                     end
-                    table.insert(table_lines, "</tr>")
+                    table.insert(lines, "</tr>")
                 end
             else
-                -- Handle paragraphs
                 if in_table then
-                    -- End of the current table
                     in_table = false
-                    table.insert(table_lines, "</tbody></table>")
-                    table.insert(lines, table.concat(table_lines))
+                    table.insert(lines, "</table>")
                 end
         
               -- Check for bold
@@ -61,12 +69,17 @@ local function trim(s)
               -- Check for images
               line = line:gsub("!%[(.-)%]%((.-)%)", "<img src='%2' alt='%1'>")
               -- Check for code
-              line = line:gsub("`(.-)`", "<code>%1</code>")
+              --line = line:gsub("%`(.-)%`", "<code>%1</code>")
+              -- Check for code blocks
+              line = line:gsub("`([^`]+)`", "<code>%1</code>")              
 
-              -- Add more rules here for other Markdown syntax
               table.insert(lines, "<p>" .. trim(line) .. "</p>")
           end
       end
+      if in_table then
+        in_table = false
+        table.insert(lines, "</tbody></table>")
+    end
       return table.concat(lines, "\n")
   end
   
