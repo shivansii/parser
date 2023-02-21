@@ -94,11 +94,11 @@ local function trim(s)
       return table.concat(lines, "\n")
   end
   
-  -- Read in the Markdown text from a file
+  -- read in the md from a file
   local markdown_text = io.open("test.md"):read("*all")
   
-  -- Convert the Markdown text to HTML
+  -- convert md to html
   local html_text = parse_markdown(markdown_text)
   
-  -- Write the resulting HTML to a file
+  -- write the resulting html to a file
   io.open("output.html", "w"):write(html_text)
