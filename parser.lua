@@ -25,8 +25,21 @@ function file_exists(file)
   function line_parser(v)
     -- check if the line is a header
     if v:match("^#") then
+        if v:match("^##") then
+            print("subheader")
+        else
         print("header")
+        end
+    -- check for bold not nill
+    elseif string.find(v, "%*%*.*%*%*") then
+        i, j = string.find(v, "%*%*.*%*%*")
+        print("bold", i, j)
+    -- check if the line is a list
+    -- elseif v:match("%*") then
+    --     print("list")
     end
+
+
     end
 
   -- tests the functions above
